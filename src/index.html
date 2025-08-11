@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WebSocket Client</title>
+    <script src="https://cdn.jsdelivr.net/sockjs/1.1.4/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+</head>
+
+<body>
+<div>
+    <!-- <button onclick="connect()">Connect</button> -->
+    <span id="connection-status" style="margin-left: 10px; color: gray;">Disconnected</span>
+</div>
+
+<div>
+    <input type="text" id="name" placeholder="Enter name..." />
+    <input type="text" id="message" placeholder="Enter message..." />
+    <button onclick="submit()">Submit</button>
+</div>
+
+<ul id="list">
+    <!-- Messages will be appended here -->
+</ul>
+
+<script>
+    var stompClient = null;
+    document.addEventListener("DOMContentLoaded",() => {
+        connect();
+    })
+
+    function connect() {
+        const socket = new SockJS("http://localhost:8080/ws");
+        stompClient = Stomp.over(socket);
+        
+        // Update connection status
+        document.getElementById('connection-status').textContent = 'Connecting...';
+        document.getElementById('connection-status').style.color = 'orange';
+
+        stompClient.connect({}, function (frame) {
+            console.log("Connected: " + frame);
+            document.getElementById('connection-status').textContent = 'Connected';
+            document.getElementById('connection-status').style.color = 'green';
+            
+            stompClient.subscribe("/topic/ping", function (message) {
+                console.log("Received a new message from server", message);
+            });
+            
+            // stompClient.subscribe("/topic/scheduled", function (message) {
+            //     console.log("Received a new scheduled message from server", message);
+            //     const li = document.createElement("li");
+            //     // Fix: message.body instead of message.body()
+            //     li.textContent = message.body;
+            //     document.getElementById("list").appendChild(li);
+            // });
+            stompClient.subscribe("/topic/message", function(data){
+                const msg = JSON.parse(data.body);
+                const li = document.createElement("li");
+                li.textContent = `${msg.name} : ${msg.timeStamp} - ${msg.message}`;
+                document.getElementById("list").appendChild(li);
+            })
+
+        }, function (error) {
+            console.error("Connection error: ", error);
+            document.getElementById('connection-status').textContent = 'Connection Failed';
+            document.getElementById('connection-status').style.color = 'red';
+        });
+    }
+
+    function submit() {
+        const name = document.getElementById("name").value.trim();
+        const message = document.getElementById("message").value.trim();
+        
+        stompClient.send("/app/chat",{}, JSON.stringify({name,message}))
+        // stompClient.send("/app/ping",{}, JSON.stringify({data:value}))
+    }
+
+    // Allow Enter key to submit
+    document.getElementById('name').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            submit();
+        }
+    });
+</script>
+</body>
+
+</html>

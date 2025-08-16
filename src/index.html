@@ -32,7 +32,7 @@
     })
 
     function connect() {
-        const socket = new SockJS("http://localhost:8080/ws");
+        const socket = new SockJS("http://localhost:8486/ws");
         stompClient = Stomp.over(socket);
         
         // Update connection status
@@ -61,6 +61,19 @@
                 li.textContent = `${msg.name} : ${msg.timeStamp} - ${msg.message}`;
                 document.getElementById("list").appendChild(li);
             })
+
+            // for driver--communication
+            stompClient.subscribe("/topic/rideRequest", function(data){
+                const bookingId = JSON.parse(data.body).bookingId;
+                const response = confirm(`you have new rider request from passenger: ${JSON.parse(data.body).passengerId} do you accepted?`)
+                console.log(response);
+                if(response == true){
+                    const id = prompt("please enter your driverId");
+                    stompClient.send(`/app/rideResponse/${id}`,{},JSON.stringify({response,bookingId})); 
+                }
+                // stompClient.send("/app/rideResponse",{},JSON.stringify({response}))
+            })
+
 
         }, function (error) {
             console.error("Connection error: ", error);

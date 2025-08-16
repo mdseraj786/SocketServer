@@ -4,14 +4,11 @@ import com.drivz.socketServer.dtos.ChatRequest;
 import com.drivz.socketServer.dtos.ChatResponse;
 import com.drivz.socketServer.dtos.TestRequestDto;
 import com.drivz.socketServer.dtos.TestResponseDto;
-import org.springframework.messaging.converter.SimpleMessageConverter;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RestController;
 
 @Controller
 public class TestController {
@@ -29,13 +26,13 @@ public class TestController {
         
         return new TestResponseDto("Received");
     }
-    
 //    @SendTo("/topic/scheduled")
 //    @Scheduled(fixedDelay = 2000)
 //    public void sendPeriodicMessage(){
 ////        return "Periodic message from server " + System.currentTimeMillis(); 
 //        simpMessagingTemplate.convertAndSend("/topic/scheduled","Periodic message from server" + System.currentTimeMillis());
 //    }
+//   
     
     @MessageMapping("/chat/{room}")
     @SendTo("/topic/message/{room}")// for custom room chat -- it sends response only this room

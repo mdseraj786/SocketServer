@@ -4,6 +4,7 @@ import com.drivz.commonLibrary.models.BookingStatus;
 import com.drivz.socketServer.dtos.RideRequestDto;
 import com.drivz.socketServer.dtos.RideResponseDto;
 import com.drivz.socketServer.dtos.UpdateBookingRequestDto;
+import com.drivz.socketServer.producer.KafkaProducerService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -16,12 +17,24 @@ import org.springframework.web.client.RestTemplate;
 @RestController
 @RequestMapping("/api/socket")
 public class DriverRequestController {
+    
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final RestTemplate restTemplate;
-    public DriverRequestController(SimpMessagingTemplate simpMessagingTemplate, RestTemplate restTemplate) {
+    private final KafkaProducerService kafkaProducerService;
+    
+    
+    public DriverRequestController(SimpMessagingTemplate simpMessagingTemplate, RestTemplate restTemplate, KafkaProducerService kafkaProducerService) {
         this.simpMessagingTemplate = simpMessagingTemplate;
         this.restTemplate = restTemplate;
+        this.kafkaProducerService = kafkaProducerService;
     }
+    
+    @GetMapping
+    public Boolean help(){
+        kafkaProducerService.publishMessage("sample-topic","Hello");
+        return true;
+    }
+    
     
     @PostMapping("/newride")
     public ResponseEntity<Boolean> raiseRideRequest(@RequestBody RideRequestDto requestDto){
